@@ -1,0 +1,105 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <style type="text/css">
+            body, input, select, th, td, p, div, span, a { font-family: Arial;font-size: 12px;}
+            #options th { text-align: left; }
+            #options input { width: 60px;}
+            #output { margin-top: 20px; border-top: 1px solid #808080; }
+            .round { float: left; border: 1px solid #808080; margin-right: 20px}
+        </style>
+    </head>
+    <body>
+        <table id="options">
+            <tr>
+                <th>Cantidad de Jugadores:</th>
+                <td><input id="playersCount" type="number" value="2" min="2" /></td>
+            </tr>
+            <tr>
+                <th>Hora de inicio:</th>
+                <td><select id="startHour"></select><select id="startMins"></select></td>
+            </tr>
+            <tr>
+                <th>Cantidad de estaciones de juego:</th>
+                <td><input id="stations" type="number" value="1" min="1" /></td>
+            </tr>
+            <tr>
+                <th>Duracion de la partida:</th>
+                <td><input id="matchDuration" type="number" value="20" min="1" /> mins</td>
+            </tr>
+            <tr>
+                <th>Duracion de la partida a partir de la ronda X:</th>
+                <td><input id="matchDurationFromRound" type="number" value="60" min="1" /> mins
+                a partir de la ronda <input id="matchDurationRoundStart" type="number" value="4" min="1" /></td>
+            </tr>
+        </table>
+        <button id="process">Procesar</button>
+        <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script type="text/javascript">
+            var startHour = $("#startHour");
+            var startMins = $("#startMins");
+            for (var h = 0; h < 24; h++) {
+                if (h < 10) {
+                    startHour.append("<option>0" + h + "</option>");
+                }
+                else {
+                    startHour.append("<option>" + h + "</option>");
+                }
+            }
+
+            for (var m = 0; m < 60; m++) {
+                if (m < 10) {
+                    startMins.append("<option>0" + m + "</option>");
+                }
+                else {
+                    startMins.append("<option>" + m + "</option>");
+                }
+            }
+
+
+            $("#process").click(function () {
+                var playersCount = parseInt($("#playersCount").val());
+                var startTime = new Date();
+                var stationsCount = parseInt($("#stations").val());
+                var matchDuration = parseInt($("#matchDuration").val());
+                var matchDurationFromRound = parseInt($("#matchDurationFromRound").val());
+                var matchDurationRoundStart = parseInt($("#matchDurationRoundStart").val());
+                startTime.setHours(startHour.val());
+                startTime.setMinutes(startMins.val());
+                startTime.setSeconds(0);
+
+                $("#output").remove();
+
+                var output = $("<div />").attr("id", "output");
+                $("body").append(output);
+
+                var byes = 0;
+                var rounds = 1;
+                for (; Math.pow(2, rounds) < playersCount; rounds++);
+                byes = Math.pow(2, rounds) - playersCount;
+                var totalPlayers = playersCount + byes;
+
+                var currentStation = 1
+                for (var round = 1; round <= rounds; round++) {
+                    var html = "<table class=\"round\"><caption>Ronda " + round + "</caption><tr><th>Partido</th><th>Horario</th><th>Estacion</th></tr>";
+
+                    for (var match = 1; match <= totalPlayers / 2; match++, currentStation++) {
+
+                        html += "<tr><td>" + match + "</td><td>" + startTime.toLocaleTimeString() + "</td><td>" + currentStation + "</td></tr>";
+
+                        if (currentStation == stationsCount) {
+                            currentStation = 0;
+                            startTime.setMinutes(startTime.getMinutes() + (round == matchDurationRoundStart ? matchDurationFromRound : matchDuration))
+                        }
+                    }
+
+                    totalPlayers /= 2;
+
+                    html += "</table>";
+                    output.append($(html));
+                }
+
+            });
+        </script>
+    </body>
+</html>
